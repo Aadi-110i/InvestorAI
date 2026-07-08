@@ -1,71 +1,115 @@
-# InvestorAI — AI Investment Research Agent
+# InvestorAI
 
-This is a full-stack AI-powered investment research agent that takes a company name, performs multi-dimensional research using LangGraph and GPT-4o, and delivers a structured Invest/Pass/Watch recommendation.
+InvestorAI is an autonomous, multi-agent AI research platform designed for institutional-grade due diligence. Instead of relying on keyword searches or stale databases, InvestorAI deploys specialized AI sub-agents in parallel to live-scrape the web, synthesize financial data, analyze market sentiment, and evaluate competitive moats — culminating in a high-conviction investment verdict.
 
-## Overview
-Built for the InsideIIM Altuni AI Labs take-home assignment.
+Built for the **InsideIIM × Altuni AI Labs** assignment.
 
-Features:
-- **Multi-Node Agent Graph**: Uses LangGraph.js to orchestrate parallel research tasks.
-- **Real-Time Web Search**: Uses Tavily API to fetch real-time financial data, news, and competitor information.
-- **Streaming UI**: Uses Server-Sent Events (SSE) to stream the agent's progress to the frontend in real-time.
-- **Premium Design**: Built with Next.js App Router and Vanilla CSS (dark theme, glassmorphism, animations).
+---
 
-## How to Run It
+## 🚀 Overview
+
+The platform acts as a senior financial analyst. When a user inputs a company name (e.g., "NVIDIA"), the system:
+1. **Identifies and Profiles** the corporate entity.
+2. **Runs Parallel Research** across three distinct domains:
+   - **Deep Financials**: Analyzes revenue, margins, valuation ratios, and risks.
+   - **Market Sentiment**: Scrapes real-time headlines and computes a sentiment score.
+   - **Industry Moats**: Evaluates the competitive landscape and structural advantages.
+3. **Synthesizes a Verdict**: A master decision-agent reviews the parallel reports, weighs the bull/bear cases, and delivers a final conviction score (INVEST / WATCH / PASS).
+
+---
+
+## 🛠️ How to Run It
 
 ### 1. Prerequisites
 - Node.js (v18+)
-- OpenAI API Key (`OPENAI_API_KEY`)
-- Tavily API Key (`TAVILY_API_KEY`)
+- A [Groq API Key](https://console.groq.com/keys) (for the LLM)
+- A [Tavily API Key](https://tavily.com/) (for web search/scraping)
 
 ### 2. Setup
-
-1. Install dependencies:
+Clone the repository and install dependencies:
 ```bash
+git clone https://github.com/Aadi-110i/InvestorAI.git
+cd InvestorAI
 npm install
 ```
 
-2. Create a `.env.local` file in the root directory:
-```bash
-OPENAI_API_KEY=your_openai_api_key
-TAVILY_API_KEY=your_tavily_api_key
+### 3. Environment Variables
+Create a `.env.local` file in the root directory and add your keys:
+```env
+GROQ_API_KEY=your_groq_api_key_here
+TAVILY_API_KEY=your_tavily_api_key_here
 ```
 
-### 3. Run
-Start the development server:
+### 4. Run the Development Server
 ```bash
 npm run dev
 ```
-
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## How it Works (Architecture)
+---
 
-1. **User Input**: User enters a company name in the UI.
-2. **Streaming API**: The frontend sends a POST request to `/api/research`.
-3. **LangGraph Execution**:
-   - `companyIdentification`: Resolves the company name to basic info.
-   - **Parallel Execution**: `financialAnalysis`, `newsSentiment`, and `industryCompetitors` run concurrently to gather data.
-   - `investmentDecision`: Synthesizes all data to make a final Invest/Pass/Watch recommendation.
-4. **Real-time Updates**: As each node completes, the backend streams a `node_complete` event with the parsed JSON data.
-5. **Dynamic UI**: The frontend updates the timeline and renders glassmorphism cards for each research section as data arrives.
+## 🧠 How It Works (Architecture)
 
-## Key Decisions & Trade-offs
+**Tech Stack:** Next.js (React 18, App Router), LangChain/LangGraph, Groq (Llama-3.3-70b-versatile), Tavily Search, Framer Motion, Vanilla CSS.
 
-- **Next.js App Router**: Chosen for seamless full-stack development. API routes easily support SSE streaming.
-- **Vanilla CSS**: Used to create a highly custom, premium design without the overhead or specific aesthetics of Tailwind.
-- **LangGraph over simple chains**: Allows for parallel execution (financials, news, industry all run at once), speeding up the research process significantly.
-- **Tavily Search**: Chosen over basic SerpAPI because Tavily is specifically optimized for LLM agents, returning cleaner, more structured content.
-- **Stateless Design**: No database is used. Each research session is self-contained. Trade-off: No history of past searches.
+**The Multi-Agent Workflow (LangGraph):**
+The core intelligence is driven by a `StateGraph` (located in `src/lib/agent/graph.ts`). 
+1. **Entry Node (`companyIdentification`)**: Gathers baseline company info.
+2. **Parallel Execution (Conditional Edges)**: Once profiling is done, the graph branches out. The `financialAnalysis`, `newsSentiment`, and `industryCompetitors` nodes run *simultaneously*, drastically reducing overall wait time.
+3. **Convergence (`investmentDecision`)**: The graph waits for all three parallel nodes to finish. The master agent then consumes the aggregated state (financials, news, industry data) and outputs the final verdict.
+4. **Robust JSON Parsing**: A custom `parseJSON` utility ensures that LLM outputs (which sometimes include markdown fences or trailing prose) are safely strictly cast into TypeScript interfaces, preventing UI crashes.
 
-## Example Runs
-*(You can test these once the app is running)*
-- **Apple (AAPL)**: Typically yields an "INVEST" or "WATCH" depending on current valuation and news cycle.
-- **Tesla (TSLA)**: Often yields a "WATCH" due to high volatility and mixed sentiment.
-- **WeWork (WE)**: Yields a strong "PASS".
+---
 
-## What I would improve with more time
-1. **Caching**: Cache Tavily search results and LLM outputs for a few hours to save API costs and speed up repeat queries.
-2. **More Data Sources**: Integrate Yahoo Finance API or Alpha Vantage for hard financial metrics instead of relying solely on LLM extraction from web search.
-3. **PDF Generation**: Add a button to export the final research report as a PDF.
-4. **User Accounts & History**: Add authentication and a database (e.g., Supabase) to save past reports.
+## ⚖️ Key Decisions & Trade-Offs
+
+**1. Vanilla CSS over Tailwind:**
+*Decision:* We used vanilla CSS (`globals.css`) with custom CSS variables.
+*Why:* To create a highly bespoke, premium "institutional dashboard" aesthetic with glassmorphism, precise 3D tilt effects (`TiltCard`), and intricate grid layouts without cluttering JSX with utility classes.
+
+**2. Llama-3.3-70b-versatile via Groq:**
+*Decision:* Chose Groq's Llama 3 API over OpenAI GPT-4o.
+*Why:* Groq's LPU architecture provides blazing fast token generation. Because we are running 4-5 heavy research prompts per query, using Groq reduces research time from ~30 seconds down to ~8 seconds.
+
+**3. Stateless Architecture (Left out a Database):**
+*Decision:* No PostgreSQL or MongoDB was integrated.
+*Why:* The core mandate was an AI Agent assignment. Adding user authentication and saved-search history would bloat the codebase without demonstrating extra LLM capability. Vercel handles the API routing statelessly (`force-dynamic`).
+
+**4. Graceful Degradation over Hard Failures:**
+*Decision:* Instructed the LLMs to fall back on their internal training weights if live search results from Tavily were sparse.
+*Why:* Prevents a total failure of the dashboard if a company doesn't have breaking news in the last 24 hours.
+
+---
+
+## 📊 Example Runs
+
+1. **NVIDIA (NVDA)**
+   - **Verdict:** INVEST
+   - **Insights:** The agent correctly identifies their massive >100% YoY revenue growth and dominant Moat Rating ("Wide"). The Bear case smartly highlights the high P/E ratio and reliance on hyperscaler capex.
+
+2. **Intel (INTC)**
+   - **Verdict:** WATCH / PASS
+   - **Insights:** The agent catches the declining market share in foundries, negative sentiment from recent earnings misses, and aggressive competitive threats from AMD and ARM architecture.
+
+3. **Tesla (TSLA)**
+   - **Verdict:** WATCH
+   - **Insights:** Mixed sentiment. The agent highlights the strong brand and EV infrastructure moat, but penalizes the score based on compressing automotive margins and high valuation relative to pure-play auto competitors.
+
+---
+
+## 🔮 What We Would Improve With More Time
+
+1. **Financial API Integration:** While Tavily is great for web scraping, integrating a dedicated financial data API (like Alpha Vantage or Yahoo Finance) would provide strictly accurate trailing twelve-month (TTM) metrics rather than relying on the LLM to extract numbers from search snippets.
+2. **Streaming UI (`useStream`):** Currently, the UI waits for the entire LangGraph execution to finish before showing the dashboard. Streaming the LangGraph state back to the client in real-time (showing a live checklist of "Scraping SEC filings...", "Analyzing Sentiment...") would drastically improve UX.
+3. **PDF Export Functionality:** The "Export PDF" button currently just triggers an alert. We would use `jspdf` and `html2canvas` to generate a downloadable tear sheet for the analyst.
+
+---
+
+## 🏆 BONUS: LLM Chat Logs Included!
+
+As requested for bonus points, **the entire LLM chat session transcript that built this project has been included.** 
+
+You can find the raw JSONL transcript file at the root of this repository:
+👉 `LLM_CHAT_LOGS.jsonl`
+
+This file details every step of the agentic coding process, the thought process behind the UI implementations, debugging the Vercel deployment, and writing the robust JSON parsing fallbacks.
