@@ -231,10 +231,10 @@ export default function Home() {
               ) : financialLoading ? <SkeletonCard /> : null}
             </div>
 
-            {/* Center: Verdict */}
-            <div className="hero-center">
+            {/* Center: Verdict & Company Overview */}
+            <div className="hero-center" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s5)' }}>
               {decision ? (
-                <div style={{ animation: 'scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards', height: '100%' }}>
+                <div style={{ animation: 'scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' }}>
                   <VerdictCard
                     decision={decision}
                     companyName={company?.name || query}
@@ -244,10 +244,17 @@ export default function Home() {
                   />
                 </div>
               ) : (loading && !company && !companyLoading) ? (
-                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <WaitingCard icon="🔍" label="Researching company..." />
                 </div>
               ) : null}
+              
+              {/* Company Overview moved here to fill the gap */}
+              {company ? (
+                <div style={{ animation: 'fadeIn 0.6s ease forwards' }}>
+                  <ResearchSection title="Company Overview" icon={<Building size={18} />} type="company" data={company} />
+                </div>
+              ) : companyLoading ? <SkeletonCard /> : null}
             </div>
 
             {/* Right: Industry & Competitors */}
@@ -260,10 +267,7 @@ export default function Home() {
 
           {/* Bottom dashboard grid */}
           <div className="dashboard-grid">
-            {/* Company Overview */}
-            {company ? (
-              <ResearchSection title="Company Overview" icon={<Building size={18} />} type="company" data={company} />
-            ) : companyLoading ? <SkeletonCard /> : null}
+            {/* The Company Overview used to be here, but is now moved to the center column */}
           </div>
 
           {/* News — full width below grid */}
