@@ -3,7 +3,7 @@ import { ChatGroq } from '@langchain/groq';
 import { AgentStateAnnotation } from '../state';
 import type { IndustryAnalysis } from '../../types';
 
-const llm = new ChatGroq({ model: 'llama-3.3-70b-versatile', temperature: 0.2 });
+const llm = new ChatGroq({ apiKey: process.env.GROQ_API_KEY || 'dummy', model: 'llama-3.3-70b-versatile', temperature: 0.2 });
 const searchTool = new TavilySearchResults({ maxResults: 10 });
 
 export async function industryCompetitors(

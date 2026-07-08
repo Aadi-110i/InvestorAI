@@ -3,6 +3,7 @@ import { researchAgent } from '@/lib/agent/graph';
 import type { StreamEvent } from '@/lib/types';
 
 export const maxDuration = 120;
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   const { companyName } = await req.json();
