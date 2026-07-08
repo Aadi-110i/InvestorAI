@@ -361,7 +361,7 @@ export default function Home() {
               <h2 className="landing-heading" style={{ fontSize: '2.5rem' }}>Built for Institutional Investors</h2>
               <div className="landing-subheading">Eliminate bias and accelerate due diligence.</div>
               
-              <div className="feature-grid" style={{ maxWidth: '900px', margin: '0 auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 400px))', gap: 'var(--s6)', justifyContent: 'center' }}>
                 <div className="feature-card">
                   <div className="feature-icon" style={{ color: 'var(--purple-600)' }}><Building size={48} strokeWidth={1.5} /></div>
                   <div className="feature-title">Unbiased Analysis</div>
