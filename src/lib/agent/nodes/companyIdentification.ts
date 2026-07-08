@@ -3,12 +3,11 @@ import { ChatGroq } from '@langchain/groq';
 import { AgentStateAnnotation } from '../state';
 import type { CompanyInfo } from '../../types';
 
-const llm = new ChatGroq({ apiKey: process.env.GROQ_API_KEY || 'dummy', model: 'llama-3.3-70b-versatile', temperature: 0.2 });
-const searchTool = new TavilySearchResults({ maxResults: 10 });
-
 export async function companyIdentification(
   state: typeof AgentStateAnnotation.State
 ): Promise<Partial<typeof AgentStateAnnotation.State>> {
+  const llm = new ChatGroq({ model: 'llama-3.3-70b-versatile', temperature: 0.2 });
+  const searchTool = new TavilySearchResults({ maxResults: 10 });
   try {
     const searchResults = await searchTool.invoke({ query: `${state.companyName} company overview profile sector market cap CEO headquarters` });
     const resultsText = typeof searchResults === 'string' ? searchResults : JSON.stringify(searchResults);

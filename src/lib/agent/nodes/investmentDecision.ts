@@ -2,11 +2,10 @@ import { ChatGroq } from '@langchain/groq';
 import { AgentStateAnnotation } from '../state';
 import type { InvestmentDecision } from '../../types';
 
-const llm = new ChatGroq({ apiKey: process.env.GROQ_API_KEY || 'dummy', model: 'llama-3.3-70b-versatile', temperature: 0.2 });
-
 export async function investmentDecision(
   state: typeof AgentStateAnnotation.State
 ): Promise<Partial<typeof AgentStateAnnotation.State>> {
+  const llm = new ChatGroq({ model: 'llama-3.3-70b-versatile', temperature: 0.2 });
   try {
     const response = await llm.invoke([
       {
