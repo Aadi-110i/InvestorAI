@@ -108,7 +108,10 @@ button { border: none; background: none; cursor: pointer; }
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  padding: 0 var(--s8);
+  padding: 0 var(--s16);
+}
+@media (max-width: 768px) {
+  .container { padding: 0 var(--s6); }
 }
 
 /* ============================================================
