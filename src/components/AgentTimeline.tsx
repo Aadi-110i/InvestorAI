@@ -1,4 +1,5 @@
 'use client';
+import { Bot, Check, X, Search, BarChart3, Newspaper, Factory, Brain } from 'lucide-react';
 
 export interface TimelineStep {
   id: string;
@@ -25,7 +26,7 @@ export default function AgentTimeline({ steps, compact }: { steps: TimelineStep[
     return (
       <div className="timeline-strip-inner">
         <div className="timeline-strip-meta">
-          <span className="timeline-strip-icon">🤖</span>
+          <span className="timeline-strip-icon"><Bot size={18} /></span>
           <span className="timeline-strip-label">Research Agent</span>
           <span className="timeline-strip-count">{done}/{steps.length} stages</span>
           <div className="timeline-strip-bar">
@@ -34,19 +35,27 @@ export default function AgentTimeline({ steps, compact }: { steps: TimelineStep[
           <span className="timeline-strip-pct">{pct}%</span>
         </div>
         <div className="timeline-strip-steps">
-          {steps.map(step => (
-            <div key={step.id} className={`tl-pill ${step.status}`} title={step.label}>
-              <span className="tl-pill-dot">
-                {step.status === 'done' ? '✓'
-                  : step.status === 'error' ? '✗'
-                  : step.status === 'active'
-                    ? <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>{step.icon}</span>
-                    : step.icon}
-              </span>
-              <span className="tl-pill-label">{step.label}</span>
-              {step.duration && <span className="tl-pill-time">{(step.duration/1000).toFixed(1)}s</span>}
-            </div>
-          ))}
+          {steps.map(step => {
+            let IconComp: any = Search;
+            if (step.icon === 'bar-chart') IconComp = BarChart3;
+            else if (step.icon === 'newspaper') IconComp = Newspaper;
+            else if (step.icon === 'factory') IconComp = Factory;
+            else if (step.icon === 'brain') IconComp = Brain;
+
+            return (
+              <div key={step.id} className={`tl-pill ${step.status}`} title={step.label}>
+                <span className="tl-pill-dot">
+                  {step.status === 'done' ? <Check size={14} />
+                    : step.status === 'error' ? <X size={14} />
+                    : step.status === 'active'
+                      ? <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}><IconComp size={14} /></span>
+                      : <IconComp size={14} />}
+                </span>
+                <span className="tl-pill-label">{step.label}</span>
+                {step.duration && <span className="tl-pill-time">{(step.duration/1000).toFixed(1)}s</span>}
+              </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -57,7 +66,7 @@ export default function AgentTimeline({ steps, compact }: { steps: TimelineStep[
     <div className="card timeline-card">
       <div className="card-glow" aria-hidden />
       <div className="timeline-head">
-        <div className="timeline-head-icon">🤖</div>
+        <div className="timeline-head-icon"><Bot size={20} /></div>
         <div>
           <div className="timeline-head-title">Research Agent</div>
           <div className="timeline-head-sub">{done}/{steps.length} stages complete</div>
@@ -70,15 +79,21 @@ export default function AgentTimeline({ steps, compact }: { steps: TimelineStep[
       <div>
         {steps.map((step, i) => {
           const isLast = i === steps.length - 1;
+          let IconComp: any = Search;
+          if (step.icon === 'bar-chart') IconComp = BarChart3;
+          else if (step.icon === 'newspaper') IconComp = Newspaper;
+          else if (step.icon === 'factory') IconComp = Factory;
+          else if (step.icon === 'brain') IconComp = Brain;
+
           return (
             <div key={step.id} className={`tl-step ${step.status}`}>
               <div className="tl-col">
                 <div className="tl-dot">
-                  {step.status === 'done' ? '✓'
-                    : step.status === 'error' ? '✗'
+                  {step.status === 'done' ? <Check size={14} />
+                    : step.status === 'error' ? <X size={14} />
                     : step.status === 'active'
-                      ? <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>{step.icon}</span>
-                      : step.icon}
+                      ? <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}><IconComp size={14} /></span>
+                      : <IconComp size={14} />}
                 </div>
                 {!isLast && <div className="tl-line"><div className="tl-line-fill" /></div>}
               </div>

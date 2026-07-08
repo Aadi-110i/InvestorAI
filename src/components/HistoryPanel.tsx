@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Rocket, Ban, Eye, ClipboardList, X } from 'lucide-react';
 
 export interface HistoryEntry {
   id: string;
@@ -21,10 +22,10 @@ const VERDICT_COLOR: Record<string, string> = {
   PASS:   '#ef4444',
   WATCH:  '#f59e0b',
 };
-const VERDICT_EMOJI: Record<string, string> = {
-  INVEST: '🚀',
-  PASS:   '🛑',
-  WATCH:  '👁️',
+const VERDICT_ICON: Record<string, any> = {
+  INVEST: Rocket,
+  PASS:   Ban,
+  WATCH:  Eye,
 };
 
 export function saveHistory(entry: HistoryEntry) {
@@ -70,7 +71,7 @@ export default function HistoryPanel({ current, onSelect }: Props) {
         aria-label="Toggle history panel"
         aria-expanded={open}
       >
-        <span className="history-toggle-icon">📋</span>
+        <span className="history-toggle-icon"><ClipboardList size={18} /></span>
         <span className="history-toggle-label">History</span>
         <span className="history-toggle-count">{history.length}</span>
       </button>
@@ -80,7 +81,7 @@ export default function HistoryPanel({ current, onSelect }: Props) {
         <div className="history-panel-inner">
           <div className="history-panel-head">
             <div className="history-panel-title">Recent Searches</div>
-            <button className="icon-btn" onClick={() => setOpen(false)} aria-label="Close history">✕</button>
+            <button className="icon-btn" onClick={() => setOpen(false)} aria-label="Close history"><X size={16} /></button>
           </div>
           <div className="history-list">
             {history.map(entry => (
@@ -89,7 +90,9 @@ export default function HistoryPanel({ current, onSelect }: Props) {
                 className={`history-item ${current?.toLowerCase() === entry.company.toLowerCase() ? 'active' : ''}`}
                 onClick={() => { onSelect(entry.company); setOpen(false); }}
               >
-                <span className="history-emoji">{VERDICT_EMOJI[entry.verdict] || '📊'}</span>
+                <span className="history-emoji">
+                  {(() => { const Icon = VERDICT_ICON[entry.verdict] || Eye; return <Icon size={16} />; })()}
+                </span>
                 <div className="history-item-body">
                   <div className="history-item-name">{entry.company}</div>
                   <div className="history-item-meta">

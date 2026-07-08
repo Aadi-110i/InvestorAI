@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { Check, X } from 'lucide-react';
 import type { CompanyInfo, FinancialAnalysis, NewsSentiment, IndustryAnalysis } from '@/lib/types';
 
 interface Props {
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   data: any;
   type: 'company' | 'financial' | 'news' | 'industry';
   score?: number;
@@ -150,13 +151,13 @@ function Financial({ d }: { d: FinancialAnalysis }) {
         <div className="list-panel">
           <div className="list-panel-head pos">↑ Highlights</div>
           <ul className="item-list">
-            {d.highlights.map((x,i)=><li key={i}><span className="item-dot pos">✓</span>{x}</li>)}
+            {d.highlights.map((x,i)=><li key={i}><span className="item-dot pos"><Check size={14} /></span>{x}</li>)}
           </ul>
         </div>
         <div className="list-panel">
           <div className="list-panel-head neg">↓ Risks</div>
           <ul className="item-list">
-            {d.risks.map((x,i)=><li key={i}><span className="item-dot neg">✗</span>{x}</li>)}
+            {d.risks.map((x,i)=><li key={i}><span className="item-dot neg"><X size={14} /></span>{x}</li>)}
           </ul>
         </div>
       </div>
@@ -305,7 +306,7 @@ function Industry({ d }: { d: IndustryAnalysis }) {
         <div className="list-panel">
           <div className="list-panel-head pos">✦ Advantages</div>
           <ul className="item-list">
-            {d.competitiveAdvantages.map((x,i)=><li key={i}><span className="item-dot pos">✓</span>{x}</li>)}
+            {d.competitiveAdvantages.map((x,i)=><li key={i}><span className="item-dot pos"><Check size={14} /></span>{x}</li>)}
           </ul>
         </div>
         <div className="list-panel">

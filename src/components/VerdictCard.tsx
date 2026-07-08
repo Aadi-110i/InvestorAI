@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { InvestmentDecision } from '@/lib/types';
 import dynamic from 'next/dynamic';
+import { Rocket, Ban, Eye, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 // Dynamically import canvas-based chart to avoid SSR issues
 const RadarChart = dynamic(() => import('./RadarChart'), { ssr: false });
@@ -11,16 +12,16 @@ const WEIGHT_PCT: Record<string, number> = {
   'very high': 95, 'high': 80, 'medium': 55, 'low': 30, 'very low': 15,
 };
 
-const VERDICT_META: Record<string, { emoji: string; label: string; color: string }> = {
-  invest: { emoji: '🚀', label: 'Strong Buy',   color: '#34d399' },
-  pass:   { emoji: '🛑', label: 'Avoid',        color: '#f87171' },
-  watch:  { emoji: '👁️', label: 'Monitor',      color: '#fbbf24' },
+const VERDICT_META: Record<string, { icon: any; label: string; color: string }> = {
+  invest: { icon: Rocket, label: 'Strong Buy',   color: '#34d399' },
+  pass:   { icon: Ban,    label: 'Avoid',        color: '#f87171' },
+  watch:  { icon: Eye,    label: 'Monitor',      color: '#fbbf24' },
 };
 
 /* ─── Animated counter hook ─────────────────────────── */
 function useCounter(target: number, duration = 1200) {
   const [val, setVal] = useState(0);
-  const frame = useRef<number>();
+  const frame = useRef<number | undefined>(undefined);
   useEffect(() => {
     const start = performance.now();
     const tick = (now: number) => {
@@ -98,7 +99,7 @@ export default function VerdictCard({ decision, companyName = 'Company', financi
   const [fillW, setFillW] = useState('0%');
   const count    = useCounter(decision.confidence);
   const verdictKey = decision.verdict.toLowerCase();
-  const meta     = VERDICT_META[verdictKey] ?? { emoji: '📊', label: 'Decision', color: '#a78bfa' };
+  const meta     = VERDICT_META[verdictKey] ?? { icon: Eye, label: 'Decision', color: '#a78bfa' };
 
   useEffect(() => {
     const t = setTimeout(() => setFillW(`${decision.confidence}%`), 200);
@@ -135,7 +136,7 @@ export default function VerdictCard({ decision, companyName = 'Company', financi
 
   const printableHTML = `
     <h1>${companyName}</h1>
-    <span class="verdict-badge ${verdictKey}">${meta.emoji} ${decision.verdict}</span>
+    <span class="verdict-badge ${verdictKey}">${decision.verdict}</span>
     <div style="display:flex;gap:32px;align-items:center;margin-bottom:8px">
       <div><div class="conf-label">AI CONFIDENCE</div><div class="conf">${decision.confidence}%</div></div>
       <div><div class="conf-label">TIME HORIZON</div><div style="font-size:1.1rem;font-weight:700;margin-top:4px">${decision.timeHorizon}</div></div>
@@ -158,6 +159,8 @@ export default function VerdictCard({ decision, companyName = 'Company', financi
     </table>
   `;
 
+  const VerdictIcon = meta.icon;
+
   return (
     <div className="verdict-section">
       {/* Hidden div for PDF export */}
@@ -173,9 +176,9 @@ export default function VerdictCard({ decision, companyName = 'Company', financi
           title="Export report as PDF"
           id="export-pdf-btn"
         >
-          📄 Export PDF
+          <VerdictIcon size={14} /> Export PDF
         </button>
-        <span className="pill info" style={{ fontSize: '0.7rem' }}>{meta.emoji} AI Generated</span>
+        <span className="pill info" style={{ fontSize: '0.7rem' }}><VerdictIcon size={12} /> AI Generated</span>
       </div>
 
       <div className={`verdict-card ${verdictKey}`}>
@@ -207,7 +210,7 @@ export default function VerdictCard({ decision, companyName = 'Company', financi
             <div className="verdict-conf-track">
               <div className="verdict-conf-fill" style={{ width: fillW }} />
             </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: 4 }}>
+            <div className="verdict-conf-sub">
               {count >= 80 ? 'High conviction' : count >= 60 ? 'Moderate conviction' : 'Low conviction'}
             </div>
           </div>
@@ -281,12 +284,21 @@ export default function VerdictCard({ decision, companyName = 'Company', financi
               <tbody>
                 {decision.keyFactors.map((f, i) => {
                   const wpct = WEIGHT_PCT[f.weight?.toLowerCase()] ?? 50;
+                  const isPos = f.impact === 'positive';
+                  const isNeg = f.impact === 'negative';
                   return (
                     <tr key={i}>
-                      <td style={{ fontWeight: 600, color: 'var(--text-light)' }}>{f.factor}</td>
+                      <td>
+                        <div className="kdf-row">
+                          <div className="kdf-label">
+                            {isPos ? <TrendingUp size={14} color="#10b981" /> : isNeg ? <TrendingDown size={14} color="#ef4444" /> : <Minus size={14} color="#9ca3af" />}
+                            <span style={{ fontWeight: 600, color: 'var(--text-light)' }}>{f.factor}</span>
+                          </div>
+                        </div>
+                      </td>
                       <td>
                         <span className={`impact-badge ${f.impact}`}>
-                          {f.impact === 'positive' ? '↑' : f.impact === 'negative' ? '↓' : '→'} {f.impact}
+                          {f.impact}
                         </span>
                       </td>
                       <td>
