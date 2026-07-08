@@ -277,7 +277,7 @@ export default function Home() {
         </div>
 
       ) : (
-        <div style={{ position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', overflowX: 'hidden' }}>
           {/* Animated 3D Background */}
           <div className="animated-mesh-bg" />
 
@@ -361,7 +361,7 @@ export default function Home() {
               <h2 className="landing-heading" style={{ fontSize: '2.5rem' }}>Built for Institutional Investors</h2>
               <div className="landing-subheading">Eliminate bias and accelerate due diligence.</div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 400px))', gap: 'var(--s6)', justifyContent: 'center' }}>
+              <div className="feature-grid">
                 <div className="feature-card">
                   <div className="feature-icon" style={{ color: 'var(--purple-600)' }}><Building size={48} strokeWidth={1.5} /></div>
                   <div className="feature-title">Unbiased Analysis</div>
@@ -371,6 +371,11 @@ export default function Home() {
                   <div className="feature-icon" style={{ color: 'var(--purple-600)' }}><BarChart3 size={48} strokeWidth={1.5} /></div>
                   <div className="feature-title">Real-Time Intelligence</div>
                   <div className="feature-desc">By live-scraping news and SEC filings instead of relying on stale databases, the system captures immediate market catalysts and shifting macro trends before they are fully priced in.</div>
+                </div>
+                <div className="feature-card">
+                  <div className="feature-icon" style={{ color: 'var(--purple-600)' }}><Search size={48} strokeWidth={1.5} /></div>
+                  <div className="feature-title">Deep Due Diligence</div>
+                  <div className="feature-desc">Every analysis traces back to live web sources, SEC filings, and analyst consensus — giving you a full audit trail so you can verify exactly where each data point came from.</div>
                 </div>
               </div>
             </div>
