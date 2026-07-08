@@ -1,53 +1,52 @@
 import { ChatGroq } from '@langchain/groq';
 import { AgentStateAnnotation } from '../state';
 import type { InvestmentDecision } from '../../types';
+import { parseJSON } from '../parseJSON';
 
 export async function investmentDecision(
   state: typeof AgentStateAnnotation.State
 ): Promise<Partial<typeof AgentStateAnnotation.State>> {
-  const llm = new ChatGroq({ model: 'llama-3.3-70b-versatile', temperature: 0.2 });
+  const llm = new ChatGroq({ model: 'llama-3.3-70b-versatile', temperature: 0.3 });
   try {
     const response = await llm.invoke([
       {
         role: 'system',
-        content: `You are a senior investment analyst at a top-tier hedge fund. Your task is to synthesize all research data provided and make a final investment decision.
-You must return ONLY valid JSON matching this exact structure (no markdown, no code fences):
-{"verdict": "INVEST", "confidence": 85, "targetPrice": "...", "currentPrice": "...", "timeHorizon": "...", "summary": "...", "bullCase": ["...", "..."], "bearCase": ["...", "..."], "keyFactors": [{"factor": "...", "impact": "positive", "weight": "High"}], "riskLevel": "Medium"}
+        content: `You are a senior investment analyst at a top-tier hedge fund.
+Synthesize the research data and return a final investment decision as a single raw JSON object.
+CRITICAL: Output ONLY the JSON object. No markdown, no code fences, no explanation text before or after.
 
-Guidelines:
-- verdict must be one of: 'INVEST' | 'PASS' | 'WATCH'
-- confidence must be a number from 0 to 100
-- Weigh financial health heavily (40%)
-- Consider news sentiment (20%)
-- Evaluate competitive moat (25%)
-- Account for risk factors (15%)
-- Be decisive but nuanced in your summary.
-- impact in keyFactors must be 'positive' | 'negative' | 'neutral'
-- riskLevel must be 'Low' | 'Medium' | 'High' | 'Very High'
-`
+Required JSON structure:
+{"verdict":"INVEST","confidence":85,"targetPrice":"$950","currentPrice":"$850","timeHorizon":"12 months","summary":"...","bullCase":["...","..."],"bearCase":["...","..."],"keyFactors":[{"factor":"...","impact":"positive","weight":"High"}],"riskLevel":"Medium"}
+
+Rules:
+- verdict: 'INVEST' | 'PASS' | 'WATCH'
+- confidence: integer 0-100 (use real data to estimate; a company like NVIDIA should score 70-90)
+- impact: 'positive' | 'negative' | 'neutral'
+- riskLevel: 'Low' | 'Medium' | 'High' | 'Very High'
+- If some data failed to load, make your best estimate using your own training knowledge — do NOT default to WATCH/0%`
       },
       {
         role: 'user',
         content: `Company: ${state.companyName}
 
 Company Info:
-${JSON.stringify(state.companyInfo, null, 2)}
+${JSON.stringify(state.companyInfo ?? {}, null, 2)}
 
 Financial Analysis:
-${JSON.stringify(state.financialAnalysis, null, 2)}
+${JSON.stringify(state.financialAnalysis ?? {}, null, 2)}
 
 News & Sentiment:
-${JSON.stringify(state.newsSentiment, null, 2)}
+${JSON.stringify(state.newsSentiment ?? {}, null, 2)}
 
 Industry & Competitors:
-${JSON.stringify(state.industryAnalysis, null, 2)}
-`
+${JSON.stringify(state.industryAnalysis ?? {}, null, 2)}
+
+Make a decisive, well-reasoned investment verdict based on all available data.`
       }
     ]);
-    
+
     const content = typeof response.content === 'string' ? response.content : '';
-    const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const investmentDecision: InvestmentDecision = JSON.parse(cleaned);
+    const investmentDecision: InvestmentDecision = parseJSON<InvestmentDecision>(content);
     return { investmentDecision };
   } catch (error) {
     console.error('Investment decision error:', error);

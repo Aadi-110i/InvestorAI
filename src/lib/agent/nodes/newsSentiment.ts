@@ -2,6 +2,7 @@ import { TavilySearch as TavilySearchResults } from '@langchain/tavily';
 import { ChatGroq } from '@langchain/groq';
 import { AgentStateAnnotation } from '../state';
 import type { NewsSentiment } from '../../types';
+import { parseJSON } from '../parseJSON';
 
 export async function newsSentiment(
   state: typeof AgentStateAnnotation.State
@@ -11,26 +12,31 @@ export async function newsSentiment(
   try {
     const searchResults = await searchTool.invoke({ query: `${state.companyName} latest news analyst rating sentiment 2025` });
     const resultsText = typeof searchResults === 'string' ? searchResults : JSON.stringify(searchResults);
-    
+
     const response = await llm.invoke([
       {
         role: 'system',
-        content: `You are a financial research analyst. Extract news and sentiment information from the search results and return ONLY valid JSON matching this exact structure (no markdown, no code fences):
-{"overallSentiment": "positive", "sentimentScore": 0.8, "recentNews": [{"title": "...", "summary": "...", "sentiment": "positive", "date": "...", "source": "..."}], "analystConsensus": "...", "keyThemes": ["...", "..."], "risks": ["...", "..."]}
-overallSentiment must be one of 'positive' | 'negative' | 'neutral' | 'mixed'.
-sentimentScore must be a number from -1 to 1.
-recentNews array should have 3-5 items if available.
-Fill in all fields. If specific data is not found in the search results, YOU MUST USE YOUR INTERNAL KNOWLEDGE BASE to estimate or provide the most recently known accurate data for the company. ONLY use "N/A" if the metric is completely inapplicable.`
+        content: `You are a financial research analyst.
+Return news and sentiment data as a single raw JSON object.
+CRITICAL: Output ONLY the JSON. No markdown, no code fences, no prose before or after.
+
+Required structure:
+{"overallSentiment":"positive","sentimentScore":0.8,"recentNews":[{"title":"...","summary":"...","sentiment":"positive","date":"...","source":"..."}],"analystConsensus":"...","keyThemes":["...","..."],"risks":["...","..."]}
+
+Rules:
+- overallSentiment: 'positive' | 'negative' | 'neutral' | 'mixed'
+- sentimentScore: number from -1 to 1
+- recentNews: 3-5 items
+- If search results are sparse, use your own knowledge to fill in realistic values. Never return empty arrays if you know the company.`
       },
       {
         role: 'user',
         content: `Company to research: ${state.companyName}\n\nSearch results:\n${resultsText}`
       }
     ]);
-    
+
     const content = typeof response.content === 'string' ? response.content : '';
-    const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const newsSentiment: NewsSentiment = JSON.parse(cleaned);
+    const newsSentiment: NewsSentiment = parseJSON<NewsSentiment>(content);
     return { newsSentiment };
   } catch (error) {
     console.error('News sentiment error:', error);

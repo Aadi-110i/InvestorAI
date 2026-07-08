@@ -2,6 +2,7 @@ import { TavilySearch as TavilySearchResults } from '@langchain/tavily';
 import { ChatGroq } from '@langchain/groq';
 import { AgentStateAnnotation } from '../state';
 import type { CompanyInfo } from '../../types';
+import { parseJSON } from '../parseJSON';
 
 export async function companyIdentification(
   state: typeof AgentStateAnnotation.State
@@ -11,24 +12,27 @@ export async function companyIdentification(
   try {
     const searchResults = await searchTool.invoke({ query: `${state.companyName} company overview profile sector market cap CEO headquarters` });
     const resultsText = typeof searchResults === 'string' ? searchResults : JSON.stringify(searchResults);
-    
+
     const response = await llm.invoke([
       {
         role: 'system',
-        content: `You are a financial research analyst. Extract company information from the search results and return ONLY valid JSON matching this exact structure (no markdown, no code fences):
-{"name": "...", "ticker": "...", "sector": "...", "industry": "...", "marketCap": "...", "description": "...", "founded": "...", "headquarters": "...", "ceo": "...", "employees": "..."}
-Fill in all fields. If specific data is not found in the search results, YOU MUST USE YOUR INTERNAL KNOWLEDGE BASE to estimate or provide the most recently known accurate data for the company. ONLY use "N/A" if the metric is completely inapplicable.`
+        content: `You are a financial research analyst.
+Return company information as a single raw JSON object.
+CRITICAL: Output ONLY the JSON. No markdown, no code fences, no prose.
+
+Required structure:
+{"name":"...","ticker":"...","sector":"...","industry":"...","marketCap":"...","description":"...","founded":"...","headquarters":"...","ceo":"...","employees":"..."}
+
+Fill all fields using search results. If a field is not in the search results, use your own training knowledge. Only use "N/A" if genuinely unknown.`
       },
       {
         role: 'user',
         content: `Company to research: ${state.companyName}\n\nSearch results:\n${resultsText}`
       }
     ]);
-    
+
     const content = typeof response.content === 'string' ? response.content : '';
-    // Strip markdown code fences if present
-    const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const companyInfo: CompanyInfo = JSON.parse(cleaned);
+    const companyInfo: CompanyInfo = parseJSON<CompanyInfo>(content);
     return { companyInfo };
   } catch (error) {
     console.error('Company identification error:', error);
